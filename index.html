@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Club World Meal Splitter</title>
+  <!-- Apple Mobile Web App Settings for iPhone -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CW Meals">
+  <meta name="theme-color" content="#071d49">
+  <link rel="apple-touch-icon" id="appleTouchIcon">
+  <link rel="manifest" id="manifestLink">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ba: {
+              navy: '#071d49',
+              lightBlue: '#2570b8',
+              sky: '#4da6ff',
+              red: '#eb2226',
+              dark: '#030b1e',
+              card: '#0f244a',
+              cardBorder: '#1c3d73',
+              gold: '#cba052'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .active-bounce:active {
+      transform: scale(0.96);
+    }
+    .pt-safe {
+      padding-top: env(safe-area-inset-top, 0.75rem);
+    }
+    .pb-safe-content {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4.75rem) !important;
+    }
+    .pb-safe-nav {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col bg-slate-950 select-none overflow-x-hidden">
+
+  <!-- TOP HEADER -->
+  <header class="bg-gradient-to-r from-[#05152e] via-ba-navy to-[#05152e] border-b border-ba-cardBorder pt-safe px-4 pb-3 sticky top-0 z-30 shadow-lg backdrop-blur-md bg-opacity-95">
+    <div class="max-w-xl mx-auto flex items-center justify-between gap-2">
+      <!-- Left: Clean Branding -->
+      <div class="flex items-center space-x-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-ba-red to-[#c41519] flex items-center justify-center shadow-md shadow-ba-red/30 shrink-0">
+          <i class="fa-solid fa-utensils text-white text-xs"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-sm font-bold tracking-tight text-white leading-tight">Club World</h1>
+          <p class="text-[11px] text-slate-400 leading-tight">Meal Splitter</p>
+        </div>
+      </div>
+
+      <!-- Right: Dedicated Aircraft Selector & Reset Action -->
+      <div class="flex items-center space-x-1.5 shrink-0">
+        <button id="aircraftModalBtn" class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700/80 active-bounce shadow-sm">
+          <div class="w-6 h-6 rounded-lg bg-ba-lightBlue/20 text-sky-400 border border-sky-500/30 flex items-center justify-center text-[11px]">
+            <i class="fa-solid fa-plane"></i>
+          </div>
+          <div class="text-left leading-none">
+            <div class="flex items-center gap-1">
+              <span id="headerAircraftCode" class="text-xs font-black font-mono tracking-tight text-white">77M</span>
+              <i class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
+            </div>
+            <p id="headerAircraftName" class="text-[9px] text-slate-400 truncate max-w-[105px] mt-0.5">Boeing 777-200ER</p>
+          </div>
+        </button>
+
+        <button id="resetBtn" title="Reset All" class="h-9 w-9 text-xs bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl border border-slate-700/80 active-bounce flex items-center justify-center shadow-sm">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+        <button id="qrShareBtn" title="Share via QR / Install" class="h-9 px-2.5 text-xs bg-sky-950/90 hover:bg-sky-900 text-sky-300 hover:text-white rounded-xl border border-sky-700/80 active-bounce flex items-center justify-center gap-1.5 shadow-sm font-semibold">
+          <i class="fa-solid fa-qrcode"></i>
+          <span class="text-[11px] font-mono">QR</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- QUICK STATUS STRIP -->
+    <div class="max-w-xl mx-auto mt-2.5 grid grid-cols-4 gap-1.5 text-center">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-lg py-1 px-1.5">
+        <span class="text-[10px] text-slate-400 block font-medium">Seats</span>
+        <span id="statTotalSeats" class="text-xs font-bold text-white">49</span>
+      </div>
+      <div class="bg-slate-900/80 border border-amber-900/40 rounded-lg py-1 px-1.5">
+        <span class="text-[10px] text-amber-300 block font-medium">SPML</span>
+        <span id="statTotalSPML" class="text-xs font-bold text-amber-300">0</span>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-lg py-1 px-1.5">
+        <span class="text-[10px] text-slate-400 block font-medium">Empty</span>
+        <span id="statTotalEmpty" class="text-xs font-bold text-slate-300">0</span>
+      </div>
+      <div class="bg-sky-950/80 border border-sky-700/60 rounded-lg py-1 px-1.5">
+        <span class="text-[10px] text-sky-300 block font-bold">Std Req</span>
+        <span id="statTotalReq" class="text-xs font-black text-sky-200">49</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN SCROLLABLE CONTENT AREA -->
+  <main class="flex-1 max-w-xl w-full mx-auto px-3.5 pt-3.5 pb-safe-content space-y-4">
+
+    <!-- ============================================== -->
+    <!-- TAB 1: CABIN & ZONES SETUP                     -->
+    <!-- ============================================== -->
+    <div id="tab-zones" class="tab-content space-y-3.5">
+      <!-- Info banner -->
+      <div class="bg-gradient-to-r from-ba-navy/90 to-slate-900 p-3 rounded-xl border border-ba-cardBorder flex items-center justify-between shadow-sm">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-lg bg-sky-950 flex items-center justify-center text-sky-400 border border-sky-800/60">
+            <i class="fa-solid fa-users-line text-sm"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold text-white">Zone Demands & Deductions</h2>
+            <p class="text-xs text-slate-400">Deduct SPMLs & empty seats for net standard loads</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button id="quickZeroSPML" class="text-[11px] px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 active-bounce">
+            Clear SPML
+          </button>
+          <button id="quickZeroEmpty" class="text-[11px] px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 active-bounce">
+            Clear Empty
+          </button>
+        </div>
+      </div>
+
+      <!-- Zone Cards Container -->
+      <div id="zonesListContainer" class="space-y-3">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 2: CATERING LOADED (STARTERS & MAINS)     -->
+    <!-- ============================================== -->
+    <div id="tab-catering" class="tab-content hidden space-y-4">
+      
+      <!-- Live Status Banner -->
+      <div id="cateringReconcileBanner" class="p-3 rounded-xl border transition-all duration-200">
+        <!-- Injected via JS -->
+      </div>
+
+      <!-- Quick Auto-Fill Bar -->
+      <div class="flex items-center justify-between bg-slate-900/80 border border-slate-800 px-3 py-2 rounded-xl text-xs">
+        <span class="text-slate-400 text-[11px]">Quick galley load setup:</span>
+        <button id="autoMatchDemandBtn" class="bg-sky-900/70 hover:bg-sky-800 text-sky-200 border border-sky-700/60 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 active-bounce">
+          <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+          <span>Auto-Fill to Net Demand</span>
+        </button>
+      </div>
+
+      <!-- STARTERS CARD -->
+      <div class="bg-ba-card/80 border border-ba-cardBorder rounded-2xl p-3.5 shadow-md">
+        <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-700/70">
+          <div class="flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">S</span>
+            <div>
+              <h3 class="text-sm font-bold text-white tracking-wide">Starter Trays Loaded</h3>
+              <p class="text-[11px] text-slate-400">Total trays: <span id="startersTotalBadge" class="font-bold text-emerald-400">0</span></p>
+            </div>
+          </div>
+          <button id="addStarterBtn" class="text-xs bg-emerald-700/30 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-600/40 px-2.5 py-1 rounded-lg flex items-center gap-1 active-bounce">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            <span>Add Choice</span>
+          </button>
+        </div>
+
+        <div id="startersList" class="space-y-2.5">
+          <!-- Starters injected via JS -->
+        </div>
+      </div>
+
+      <!-- MAIN COURSES CARD -->
+      <div class="bg-ba-card/80 border border-ba-cardBorder rounded-2xl p-3.5 shadow-md">
+        <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-700/70">
+          <div class="flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs font-bold">M</span>
+            <div>
+              <h3 class="text-sm font-bold text-white tracking-wide">Main Courses Loaded</h3>
+              <p class="text-[11px] text-slate-400">Total mains: <span id="mainsTotalBadge" class="font-bold text-sky-400">0</span></p>
+            </div>
+          </div>
+          <button id="addMainBtn" class="text-xs bg-sky-700/30 hover:bg-sky-600/40 text-sky-300 border border-sky-600/40 px-2.5 py-1 rounded-lg flex items-center gap-1 active-bounce">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            <span>Add Choice</span>
+          </button>
+        </div>
+
+        <div id="mainsList" class="space-y-2.5">
+          <!-- Mains injected via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 3: SPLIT ALLOCATIONS PER CREW POSITION     -->
+    <!-- ============================================== -->
+    <div id="tab-allocations" class="tab-content hidden space-y-3.5">
+      
+      <!-- Handover header actions -->
+      <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-3 rounded-2xl">
+        <div>
+          <h2 class="text-sm font-bold text-white">Crew Zone Allocations</h2>
+          <p class="text-[11px] text-slate-400">Calculated strictly proportionally per zone demand</p>
+        </div>
+        <button id="copyHandoverBtn" class="bg-ba-lightBlue hover:bg-sky-600 text-white font-medium text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 active-bounce shadow-md">
+          <i class="fa-regular fa-copy"></i>
+          <span>Copy Briefing</span>
+        </button>
+      </div>
+
+      <!-- Position Quick Filter Strip (All vs specific crew position) -->
+      <div id="allocationPosFilterStrip" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+        <!-- Dynamically rendered pills: All, No. 1, No. 11, No. 10, etc. -->
+      </div>
+
+      <!-- Container of per-zone breakdown cards -->
+      <div id="allocationsContainer" class="space-y-3">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 4: MATRIX TABLE (ALL-AT-A-GLANCE)          -->
+    <!-- ============================================== -->
+    <div id="tab-matrix" class="tab-content hidden space-y-3.5">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-white">Full Service Matrix</h2>
+          <p class="text-[11px] text-slate-400">Galley overview across all zones & positions</p>
+        </div>
+        <button id="copyTableBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1 active-bounce">
+          <i class="fa-regular fa-clipboard"></i>
+          <span>Copy Table</span>
+        </button>
+      </div>
+
+      <!-- Matrix Card -->
+      <div class="bg-ba-card/90 border border-ba-cardBorder rounded-2xl p-3 shadow-md overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr id="matrixTableHeader" class="border-b border-slate-700/80 text-slate-400 text-[10px] uppercase">
+              <!-- Dynamically populated -->
+            </tr>
+          </thead>
+          <tbody id="matrixTableBody" class="divide-y divide-slate-800/80">
+            <!-- Dynamically populated -->
+          </tbody>
+          <tfoot id="matrixTableFoot" class="border-t-2 border-slate-700 bg-slate-950/40 font-bold text-white">
+            <!-- Dynamically populated -->
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAVIGATION DOCK (iOS Style) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-30 bg-slate-950/95 border-t border-slate-800/80 backdrop-blur-lg pb-safe-nav">
+    <div class="max-w-xl mx-auto grid grid-cols-4 h-14">
+      <button class="tab-btn active text-sky-400 flex flex-col items-center justify-center space-y-0.5 active-bounce" data-tab="tab-zones">
+        <i class="fa-solid fa-users text-sm"></i>
+        <span class="text-[10px] font-semibold tracking-tight">Zones</span>
+      </button>
+
+      <button class="tab-btn text-slate-400 hover:text-slate-200 flex flex-col items-center justify-center space-y-0.5 active-bounce relative" data-tab="tab-catering">
+        <i class="fa-solid fa-bell-concierge text-sm"></i>
+        <span class="text-[10px] font-semibold tracking-tight">Catering</span>
+        <span id="cateringBadgeDot" class="hidden absolute top-2 right-6 w-2 h-2 rounded-full bg-ba-red"></span>
+      </button>
+
+      <button class="tab-btn text-slate-400 hover:text-slate-200 flex flex-col items-center justify-center space-y-0.5 active-bounce" data-tab="tab-allocations">
+        <i class="fa-solid fa-chart-pie text-sm"></i>
+        <span class="text-[10px] font-semibold tracking-tight">Allocations</span>
+      </button>
+
+      <button class="tab-btn text-slate-400 hover:text-slate-200 flex flex-col items-center justify-center space-y-0.5 active-bounce" data-tab="tab-matrix">
+        <i class="fa-solid fa-table-cells text-sm"></i>
+        <span class="text-[10px] font-semibold tracking-tight">Matrix</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- AIRCRAFT PRESET MODAL -->
+  <div id="aircraftModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+    <div class="bg-slate-900 border border-slate-700/80 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-3.5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-plane-departure text-ba-red"></i>
+          <div>
+            <h3 class="text-base font-bold text-white">Select Aircraft Cabin</h3>
+            <p class="text-[11px] text-slate-400">Pre-configured zones, seats & service flow</p>
+          </div>
+        </div>
+        <button id="closePresetModal" class="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Fleet Category Filter Chips -->
+      <div class="grid grid-cols-4 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs text-center">
+        <button class="fleet-filter-btn active py-1.5 rounded-lg font-semibold text-white bg-ba-lightBlue transition-colors" data-fleet="ALL">All</button>
+        <button class="fleet-filter-btn py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-colors" data-fleet="B777">B777</button>
+        <button class="fleet-filter-btn py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-colors" data-fleet="B787">B787</button>
+        <button class="fleet-filter-btn py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-colors" data-fleet="A380">A380</button>
+      </div>
+
+      <!-- Preset List Container -->
+      <div id="presetsList" class="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="pt-1">
+        <button id="closePresetModalBottom" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs rounded-xl active-bounce">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHARE & INSTALL MODAL -->
+  <div id="shareModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl text-left">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-sky-950 border border-sky-500/40 text-sky-400 flex items-center justify-center font-bold text-sm">
+            <i class="fa-solid fa-mobile-screen-button"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">Share & Install App</h3>
+            <p class="text-[11px] text-slate-400">Save directly to iPhone Home Screen</p>
+          </div>
+        </div>
+        <button id="closeShareModal" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+      </div>
+
+      <!-- Live Generated QR Code Box -->
+      <div class="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-inner">
+        <img id="shareQrImg" src="" alt="Scan QR Code" class="w-44 h-44 object-contain">
+        <p class="text-[10px] text-slate-600 font-mono mt-1 font-semibold">Point iPhone camera to open</p>
+      </div>
+
+      <!-- 2-Step Install Guidance -->
+      <div class="space-y-2 text-xs text-slate-300">
+        <div class="flex items-start gap-2">
+          <span class="w-5 h-5 rounded-full bg-sky-950 text-sky-400 font-bold flex items-center justify-center shrink-0 text-[11px] border border-sky-800">1</span>
+          <p class="leading-tight">Open the link in <strong class="text-white">Safari</strong> on your iPhone.</p>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="w-5 h-5 rounded-full bg-sky-950 text-sky-400 font-bold flex items-center justify-center shrink-0 text-[11px] border border-sky-800">2</span>
+          <p class="leading-tight">Tap the <strong class="text-white">Share</strong> button <span class="px-1 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-sky-300">⎋</span> and select <strong class="text-white">Add to Home Screen</strong> <span class="px-1 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono">⊞</span>.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button id="copyShareLinkBtn" class="flex-1 py-2 rounded-xl bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700 flex items-center justify-center gap-1.5 active-bounce">
+          <i class="fa-regular fa-copy"></i>
+          <span id="copyLinkBtnText">Copy Link</span>
+        </button>
+        <button id="closeShareModalBtn" class="flex-1 py-2 rounded-xl bg-ba-lightBlue text-white text-xs font-bold hover:bg-sky-600 active-bounce shadow">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 border border-slate-700 text-white text-xs px-4 py-2.5 rounded-full shadow-2xl pointer-events-none transition-all duration-300 opacity-0 -translate-y-4 flex items-center space-x-2">
+    <i id="toastIcon" class="fa-solid fa-check text-emerald-400"></i>
+    <span id="toastMsg">Notification message</span>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // ==========================================
+    // PRESETS FOR ALL FLEET TYPES
+    // ==========================================
+    const PRESETS = {
+      '77M': {
+        fleet: 'B777',
+        seatType: 'suite',
+        productName: 'Club Suite',
+        name: 'Boeing 777-200ER (77M)',
+        zones: [
+          { id: 'z1', pos: 'No. 1', name: 'Zone A (L)', rows: '5-10 A/E', direction: '5A/E → 10A/E', seats: 10, spml: 0, empty: 0 },
+          { id: 'z2', pos: 'No. 11', name: 'Zone A (R)', rows: '5-10 F/K (incl. 8K)', direction: '5F/K → 10F/K', seats: 11, spml: 0, empty: 0 },
+          { id: 'z3', pos: 'No. 10', name: 'Zone B (L)', rows: '11-17 A/E', direction: '17A/E → 11A/E (Aft to Fwd)', seats: 14, spml: 0, empty: 0 },
+          { id: 'z4', pos: 'No. 6', name: 'Zone B (R)', rows: '11-17 F/K', direction: '17F/K → 11F/K (Aft to Fwd)', seats: 14, spml: 0, empty: 0 }
+        ]
+      },
+      '77L': {
+        fleet: 'B777',
+        seatType: 'suite',
+        productName: 'Club Suite',
+        name: 'Boeing 777-200ER (77L)',
+        zones: [
+          { id: 'z1', pos: 'No. 2', name: 'Zone A (L)', rows: '1-7 A/E', direction: '1A/E → 7A/E', seats: 14, spml: 0, empty: 0 },
+          { id: 'z2', pos: 'No. 6', name: 'Zone A (R)', rows: '1-7 F/K', direction: '1F/K → 7F/K', seats: 14, spml: 0, empty: 0 },
+          { id: 'z3', pos: 'No. 1', name: 'Zone B (L)', rows: '10-14 A/E', direction: '14A/E → 10A/E (Aft to Fwd)', seats: 10, spml: 0, empty: 0 },
+          { id: 'z4', pos: 'No. 9', name: 'Zone B (R)', rows: '10-14 F/K', direction: '14F/K → 10F/K (Aft to Fwd)', seats: 10, spml: 0, empty: 0 }
+        ]
+      },
+      '77H': {
+        fleet: 'B777',
+        seatType: 'suite',
+        productName: 'Club Suite',
+        name: 'Boeing 777-300ER (77H)',
+        zones: [
+          { id: 'z1', pos: 'No. 1', name: 'Zone A (L/R)', rows: '5-7 A/E/F/K', direction: '5A/E → 7F/K', seats: 12, spml: 0, empty: 0 },
+          { id: 'z2', pos: 'No. 13', name: 'Zone B (L)', rows: '8-15 A/E', direction: '8A/E → 15A/15E', seats: 16, spml: 0, empty: 0 },
+          { id: 'z3', pos: 'No. 3', name: 'Zone B (R)', rows: '8-15 F/K', direction: '8F/K → 15F/15K', seats: 16, spml: 0, empty: 0 },
+          { id: 'z4', pos: 'No. 4', name: 'Zone C (L)', rows: '16-24 A/E', direction: '23A/24E → 16A/16E (Aft to Fwd)', seats: 16, spml: 0, empty: 0 },
+          { id: 'z5', pos: 'No. 9', name: 'Zone C (R)', rows: '16-24 F/K', direction: '24F/23K → 16F/16K (Aft to Fwd)', seats: 16, spml: 0, empty: 0 }
+        ]
+      },
+      '781': {
+        fleet: 'B787',
+        seatType: 'suite',
+        productName: 'Club Suite',
+        name: 'Boeing 787-10 (781 / 78Z)',
+        zones: [
+          { id: 'z1', pos: 'No. 11', name: 'Zone A (L)', rows: '5-11 (A/E, 11A)', direction: '5A/E → 11A', seats: 13, spml: 0, empty: 0 },
+          { id: 'z2', pos: 'No. 2', name: 'Zone A (R)', rows: '5-11 (F/K, 11K)', direction: '5F/K → 11K', seats: 13, spml: 0, empty: 0 },
+          { id: 'z3', pos: 'No. 1', name: 'Zone B (L)', rows: '12-17 (A/E, 17E)', direction: '12A/E → 17E', seats: 11, spml: 0, empty: 0 },
+          { id: 'z4', pos: 'No. 6', name: 'Zone B (R)', rows: '12-17 (F/K, 17F)', direction: '12F/K → 17F', seats: 11, spml: 0, empty: 0 }
+        ]
+      },
+      '78N': {
+        fleet: 'B787',
+        seatType: 'suite',
+        productName: 'Club Suite',
+        name: 'Boeing 787-9 Club Suite (78N)',
+        zones: [
+          { id: 'z1', pos: 'No. 2', name: 'Zone A (L/R)', rows: '5-8 A/E/F/K', direction: '5A/E → 8K', seats: 16, spml: 0, empty: 0 },
+          { id: 'z2', pos: 'No. 1', name: 'Zone B (L)', rows: '20-25 A/E', direction: '20A/E → 25A/E', seats: 11, spml: 0, empty: 0 },
+          { id: 'z3', pos: 'No. 6', name: 'Zone B (R)', rows: '20-25 F/K', direction: '20F/K → 25F/K', seats: 11, spml: 0, empty: 0 }
+        ]
+      },
+      '789': {
+        fleet: 'B787',
+        seatType: 'legacy',
+        productName: 'Club World (Yin-Yang)',
+        name: 'Boeing 787-9 (789 Yin-Yang)',
+        zones: [
+          { id: 'z1', pos: 'No. 1', name: 'Zone A (L/R)', rows: '6-7 (A/B, D/E, F, J/K)', direction: '6A/B 6D/E → 7E/F 7J/K', centreSeats: 'Row 6 & 7', seats: 14, spml: 0, empty: 0 },
+          { id: 'z2', pos: 'No. 2', name: 'Zone B (L)', rows: '10-13 (A/B, D/E)', direction: '10A/B 10D → 13A/B 13D/E', centreSeats: 'Row 11 & 13', seats: 14, spml: 0, empty: 0 },
+          { id: 'z3', pos: 'No. 6', name: 'Zone B (R)', rows: '10-13 (E/F, J/K)', direction: '10E/F 10J/K → 13F 13J/K', centreSeats: 'Row 10 & 12', seats: 14, spml: 0, empty: 0 }
+        ]
+      },
+      '78E': {
+        fleet: 'B787',
+        seatType: 'suite',
+        productName: 'Club Suite',
+        name: 'Boeing 787-8 (78E)',
+        zones: [
+          { id: 'z1', pos: 'No. 1', name: 'Zone A (L)', rows: '1-9 A/E (excl. 6)', direction: '1A/E → 9A/E', seats: 15, spml: 0, empty: 0 },
+          { id: 'z2', pos: 'No. 2', name: 'Zone A (R)', rows: '1-9 F/K (incl. 6E/F)', direction: '1F/K → 9F/K', seats: 16, spml: 0, empty: 0 }
+        ]
+      },
+      '38A-MD': {
+        fleet: 'A380',
+        seatType: 'legacy',
+        productName: 'Club World (Yin-Yang)',
+        name: 'Airbus A380 (Rows 10-15)',
+        zones: [
+          { id: 'z1', pos: 'No. 2', name: 'Zone A (L)', rows: '10-11 A/B & D/E', direction: '10A/B 10D/E → 11A/B 11D/E', centreSeats: 'Row 10 & 11 (D/E)', seats: 8, spml: 0, empty: 0 },
+          { id: 'z2', pos: 'No. 21', name: 'Zone A (R)', rows: '10-11 F/G & J/K', direction: '10F/G 10J/K → 11F/G 11J/K', centreSeats: 'Row 10 & 11 (F/G)', seats: 8, spml: 0, empty: 0 },
+          { id: 'z3', pos: 'No. 3', name: 'Zone B (L)', rows: '12-15 A/B & D/E', direction: '15A/B 15D/E → 12A/B 12D/E (Aft to Fwd)', centreSeats: 'Row 12-14 (D/E)', seats: 14, spml: 0, empty: 0 },
+          { id: 'z4', pos: 'No. 8', name: 'Zone B (R)', rows: '12-15 F/G & J/K', direction: '15F/G 15J/K → 12F/G 12J/K (Aft to Fwd)', centreSeats: 'Row 12-14 (F/G)', seats: 14, spml: 0, empty: 0 }
+        ]
+      },
+      '38A-UD': {
+        fleet: 'A380',
+        seatType: 'legacy',
+        productName: 'Club World (Yin-Yang)',
+        name: 'Airbus A380 (Rows 50-59)',
+        zones: [
+          { id: 'z1', pos: 'No. 11', name: 'Zone A (L)', rows: '50-53 A/B & D/E', direction: '50A/B → 53A/B 53D/E', centreSeats: 'Row 51 & 53', seats: 13, spml: 0, empty: 0 },
+          { id: 'z2', pos: 'No. 15', name: 'Zone A (R)', rows: '50-53 F & J/K', direction: '50J/K → 53F 53J/K', centreSeats: 'Row 52 & 53F', seats: 12, spml: 0, empty: 0 },
+          { id: 'z3', pos: 'No. 12', name: 'Zone B (L)', rows: '56-59 A/B & D/E', direction: '59A/B 59D/E → 56A/B 56D (Aft to Fwd)', centreSeats: 'Row 59 & 57', seats: 14, spml: 0, empty: 0 },
+          { id: 'z4', pos: 'No. 22', name: 'Zone B (R)', rows: '56-59 F & J/K', direction: '59F 59J/K → 56E/F 56J/K (Aft to Fwd)', centreSeats: 'Row 58 & 56', seats: 14, spml: 0, empty: 0 }
+        ]
+      }
+    };
+
+    // Default Starter Trays (Appetiser 2 & 3 physical trays) and 3 Mains
+    const defaultState = {
+      aircraft: '77M',
+      zones: JSON.parse(JSON.stringify(PRESETS['77M'].zones)),
+      starters: [
+        { id: 's2', name: 'Appetiser 2', loaded: 26 },
+        { id: 's3', name: 'Appetiser 3', loaded: 26 }
+      ],
+      mains: [
+        { id: 'm1', name: 'Main 1', loaded: 16 },
+        { id: 'm2', name: 'Main 2', loaded: 20 },
+        { id: 'm3', name: 'Main 3', loaded: 16 }
+      ]
+    };
+
+    let appState = (() => {
+      try {
+        const saved = localStorage.getItem('ba_club_splitter_state_v4');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.aircraft && PRESETS[parsed.aircraft] && parsed.zones && parsed.starters && parsed.mains) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.warn('Storage read failed', e);
+      }
+      return JSON.parse(JSON.stringify(defaultState));
+    })();
+
+    let currentFleetFilter = 'ALL';
+    let selectedAllocationPos = 'ALL'; // Filter for Allocations tab
+
+    // Setup High-Res Apple Touch Icon and Web App Manifest on the fly
+    function setupPwaAssets() {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 192;
+        canvas.height = 192;
+        const ctx = canvas.getContext('2d');
+
+        // Deep British Airways aviation navy gradient
+        const bgGrad = ctx.createLinearGradient(0, 0, 192, 192);
+        bgGrad.addColorStop(0, '#040d1f');
+        bgGrad.addColorStop(0.5, '#071d49');
+        bgGrad.addColorStop(1, '#020712');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 192, 192);
+
+        // Gold & Sky border ring
+        ctx.strokeStyle = '#cba052';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(96, 96, 80, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Cutlery / Cloche Icon
+        ctx.fillStyle = '#4da6ff';
+        ctx.font = 'bold 64px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🍽️', 96, 82);
+
+        // App Label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 16px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.letterSpacing = '1px';
+        ctx.fillText('CW MEALS', 96, 138);
+
+        const iconUrl = canvas.toDataURL('image/png');
+        const appleIconEl = document.getElementById('appleTouchIcon');
+        if (appleIconEl) appleIconEl.setAttribute('href', iconUrl);
+
+        // Dynamic Manifest Blob
+        const manifestObj = {
+          name: "Club World Meal Splitter",
+          short_name: "CW Meals",
+          start_url: window.location.href,
+          display: "standalone",
+          background_color: "#030b1e",
+          theme_color: "#071d49",
+          orientation: "portrait",
+          icons: [
+            {
+              src: iconUrl,
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "any maskable"
+            }
+          ]
+        };
+        const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
+        const manifestLinkEl = document.getElementById('manifestLink');
+        if (manifestLinkEl) manifestLinkEl.setAttribute('href', URL.createObjectURL(blob));
+      } catch (err) {
+        console.warn('PWA assets init failed', err);
+      }
+    }
+
+    function triggerHaptic() {
+      if ('vibrate' in navigator) {
+        try { navigator.vibrate(12); } catch (e) {}
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('ba_club_splitter_state_v4', JSON.stringify(appState));
+      } catch (e) {
+        console.warn('Storage save failed', e);
+      }
+    }
+
+    // ==========================================
+    // ALLOCATION ALGORITHM (HARE-NIEMEYER)
+    // ==========================================
+    function allocateItems(items, zonesData, totalDemand) {
+      const results = {};
+      zonesData.forEach(z => { results[z.id] = {}; });
+
+      // Fallback total capacity if netDemand is 0 but meals were loaded
+      const totalCapacity = zonesData.reduce((acc, z) => acc + (z.seats || 1), 0);
+
+      items.forEach(item => {
+        const totalLoaded = Math.max(0, parseInt(item.loaded) || 0);
+
+        if (totalLoaded <= 0) {
+          zonesData.forEach(z => { results[z.id][item.id] = 0; });
+          return;
+        }
+
+        let allocatedCount = 0;
+        const remainders = [];
+
+        zonesData.forEach(z => {
+          // If totalDemand > 0 use net standard passenger demand. If 0, divide by total seat capacity.
+          const weight = totalDemand > 0 ? (z.netReq / totalDemand) : (z.seats / (totalCapacity || 1));
+          const exactShare = weight * totalLoaded;
+          const baseFloor = Math.floor(exactShare);
+          const remainder = exactShare - baseFloor;
+
+          results[z.id][item.id] = baseFloor;
+          allocatedCount += baseFloor;
+
+          remainders.push({
+            zoneId: z.id,
+            remainder: remainder,
+            netReq: totalDemand > 0 ? z.netReq : z.seats
+          });
+        });
+
+        let remainingPieces = totalLoaded - allocatedCount;
+
+        remainders.sort((a, b) => {
+          if (Math.abs(b.remainder - a.remainder) > 0.00001) {
+            return b.remainder - a.remainder;
+          }
+          return b.netReq - a.netReq;
+        });
+
+        for (let i = 0; i < remainingPieces; i++) {
+          const winnerIndex = i % remainders.length;
+          const winnerZoneId = remainders[winnerIndex].zoneId;
+          results[winnerZoneId][item.id] += 1;
+        }
+      });
+
+      return results;
+    }
+
+    function computeAllAllocations() {
+      let totalSeats = 0;
+      let totalSPML = 0;
+      let totalEmpty = 0;
+      let totalStandardReq = 0;
+
+      const zoneSummaries = appState.zones.map(z => {
+        const s = Math.max(0, parseInt(z.seats) || 0);
+        const sp = Math.max(0, parseInt(z.spml) || 0);
+        const em = Math.max(0, parseInt(z.empty) || 0);
+        const net = Math.max(0, s - sp - em);
+
+        totalSeats += s;
+        totalSPML += sp;
+        totalEmpty += em;
+        totalStandardReq += net;
+
+        return {
+          id: z.id,
+          pos: z.pos,
+          name: z.name,
+          rows: z.rows,
+          direction: z.direction,
+          centreSeats: z.centreSeats,
+          seats: s,
+          spml: sp,
+          empty: em,
+          netReq: net
+        };
+      });
+
+      const startersAllocated = allocateItems(appState.starters, zoneSummaries, totalStandardReq);
+      const mainsAllocated = allocateItems(appState.mains, zoneSummaries, totalStandardReq);
+
+      const zoneResults = {};
+      zoneSummaries.forEach(z => {
+        const sMap = startersAllocated[z.id] || {};
+        const mMap = mainsAllocated[z.id] || {};
+
+        let sumStarters = 0;
+        Object.values(sMap).forEach(v => { sumStarters += v; });
+
+        let sumMains = 0;
+        Object.values(mMap).forEach(v => { sumMains += v; });
+
+        zoneResults[z.id] = {
+          ...z,
+          starters: sMap,
+          mains: mMap,
+          totalStartersAllocated: sumStarters,
+          totalMainsAllocated: sumMains
+        };
+      });
+
+      let startersTotal = 0;
+      appState.starters.forEach(s => { startersTotal += Math.max(0, parseInt(s.loaded) || 0); });
+
+      let mainsTotal = 0;
+      appState.mains.forEach(m => { mainsTotal += Math.max(0, parseInt(m.loaded) || 0); });
+
+      return {
+        totalSeats,
+        totalSPML,
+        totalEmpty,
+        totalStandardReq,
+        startersTotal,
+        mainsTotal,
+        zones: zoneResults
+      };
+    }
+
+    // ==========================================
+    // UI HELPERS & TOAST
+    // ==========================================
+    function showToast(msg, icon = 'fa-check', isError = false) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMsg.innerText = msg;
+      toastIcon.className = `fa-solid ${icon} ${isError ? 'text-ba-red' : 'text-emerald-400'}`;
+
+      toast.classList.remove('opacity-0', '-translate-y-4');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', '-translate-y-4');
+      }, 2200);
+    }
+
+    function copyToClipboard(text, successMsg = 'Copied to clipboard!') {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg, 'fa-copy');
+      } catch (err) {
+        showToast('Unable to copy', 'fa-triangle-exclamation', true);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function updateTopSummary(computed) {
+      const presetInfo = PRESETS[appState.aircraft];
+      if (presetInfo) {
+        document.getElementById('headerAircraftCode').innerText = appState.aircraft;
+        document.getElementById('headerAircraftName').innerText = presetInfo.name;
+      }
+
+      document.getElementById('statTotalSeats').innerText = computed.totalSeats;
+      document.getElementById('statTotalSPML').innerText = computed.totalSPML;
+      document.getElementById('statTotalEmpty').innerText = computed.totalEmpty;
+      document.getElementById('statTotalReq').innerText = computed.totalStandardReq;
+
+      const banner = document.getElementById('cateringReconcileBanner');
+      const dot = document.getElementById('cateringBadgeDot');
+      const mainsDiff = computed.mainsTotal - computed.totalStandardReq;
+      const startersDiff = computed.startersTotal - computed.totalStandardReq;
+
+      let statusHtml = '';
+      if (computed.totalStandardReq === 0) {
+        dot.classList.add('hidden');
+        banner.className = 'p-3 rounded-xl border bg-slate-900 border-slate-800 text-xs text-slate-400 flex items-center gap-2';
+        statusHtml = `
+          <i class="fa-solid fa-circle-info text-sky-400"></i>
+          <span>No standard meal demand (all seats empty or SPML).</span>
+        `;
+      } else if (computed.mainsTotal === 0 && computed.startersTotal === 0) {
+        dot.classList.remove('hidden');
+        dot.className = 'absolute -top-1 -right-2 w-2 h-2 rounded-full bg-amber-400';
+        banner.className = 'p-3 rounded-xl border bg-amber-950/40 border-amber-800/80 text-xs flex items-center justify-between';
+        statusHtml = `
+          <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base"></i>
+            <div>
+              <div class="font-bold text-amber-200">Awaiting Catering Input</div>
+              <div class="text-[11px] text-amber-300">Enter loaded starter trays & mains from galley sheet.</div>
+            </div>
+          </div>
+        `;
+      } else if (mainsDiff < 0 || startersDiff < 0) {
+        dot.classList.remove('hidden');
+        dot.className = 'absolute -top-1 -right-2 w-2 h-2 rounded-full bg-ba-red';
+        banner.className = 'p-3 rounded-xl border bg-red-950/40 border-red-800/80 text-xs flex items-center justify-between';
+        statusHtml = `
+          <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-triangle-exclamation text-ba-red text-base"></i>
+            <div>
+              <div class="font-bold text-red-200">Catering Shortfall Alert</div>
+              <div class="text-[11px] text-red-300">
+                ${mainsDiff < 0 ? `Mains: ${mainsDiff} short (${computed.mainsTotal}/${computed.totalStandardReq}). ` : `Mains: OK (${computed.mainsTotal}). `}
+                ${startersDiff < 0 ? `Starters: ${startersDiff} short.` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        dot.classList.remove('hidden');
+        dot.className = 'absolute -top-1 -right-2 w-2 h-2 rounded-full bg-emerald-400';
+        const buffer = computed.mainsTotal - computed.totalStandardReq;
+        banner.className = 'p-3 rounded-xl border bg-emerald-950/40 border-emerald-800/80 text-xs flex items-center justify-between';
+        statusHtml = `
+          <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+            <div>
+              <div class="font-bold text-emerald-200">Adequately Catered</div>
+              <div class="text-[11px] text-emerald-300">
+                Mains: +${buffer} buffer | Starter Trays: ${computed.startersTotal} loaded for ${computed.totalStandardReq} pax.
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      banner.innerHTML = statusHtml;
+
+      document.getElementById('startersTotalBadge').innerText = computed.startersTotal;
+      document.getElementById('mainsTotalBadge').innerText = computed.mainsTotal;
+    }
+
+    // ==========================================
+    // RENDER FUNCTIONS
+    // ==========================================
+    function renderZonesList() {
+      const container = document.getElementById('zonesListContainer');
+      container.innerHTML = '';
+
+      const totalReq = appState.zones.reduce((s, z) => s + Math.max(0, z.seats - z.spml - z.empty), 0);
+
+      appState.zones.forEach(zone => {
+        const netStandard = Math.max(0, zone.seats - zone.spml - zone.empty);
+        const sharePct = totalReq > 0 ? ((netStandard / totalReq) * 100).toFixed(1) : '0.0';
+        const isReverseFlow = zone.direction.toLowerCase().includes('aft to fwd');
+
+        const card = document.createElement('div');
+        card.className = 'bg-ba-card/90 border border-ba-cardBorder rounded-2xl p-3.5 shadow-sm space-y-3';
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-2.5">
+              <span class="px-2.5 py-1 rounded-lg bg-ba-lightBlue/30 text-sky-200 font-bold text-xs border border-sky-400/30">
+                ${zone.pos}
+              </span>
+              <div>
+                <h3 class="text-sm font-bold text-white leading-tight">${zone.name}</h3>
+                <p class="text-[11px] text-slate-300">${zone.rows}</p>
+              </div>
+            </div>
+
+            <!-- Net Requirement Pill & Fair Share % -->
+            <div class="text-right">
+              <span class="text-[10px] uppercase font-semibold text-sky-300 block">Std Req</span>
+              <div class="flex items-center justify-end gap-1.5">
+                <span class="text-[10px] font-medium text-slate-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">${sharePct}%</span>
+                <span class="inline-block px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-extrabold text-sm border border-sky-500/30">
+                  ${netStandard}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Service Direction Badge -->
+          <div class="flex items-center gap-1.5 text-[11px] text-slate-300 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800">
+            <i class="fa-solid fa-arrow-down-long ${isReverseFlow ? 'rotate-180 text-amber-400' : 'text-sky-400'} text-xs"></i>
+            <span class="font-medium text-slate-400">Flow:</span>
+            <span class="text-slate-200">${zone.direction}</span>
+          </div>
+
+          <!-- Centre Seats Badge (for Yin-Yang Club World cabins) -->
+          ${zone.centreSeats ? `
+            <div class="flex items-center gap-1.5 text-[11px] bg-purple-950/40 border border-purple-800/50 text-purple-200 px-2.5 py-1 rounded-lg">
+              <i class="fa-solid fa-arrows-to-dot text-purple-400 text-xs"></i>
+              <span class="font-medium text-purple-300">Centre Seat(s):</span>
+              <span class="font-bold text-white">${zone.centreSeats}</span>
+            </div>
+          ` : ''}
+
+          <!-- Inputs Grid: Total Seats, SPML, Empty -->
+          <div class="grid grid-cols-3 gap-2 pt-1 text-center">
+            
+            <!-- Total Seats (adjustable) -->
+            <div class="bg-slate-900/70 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+              <span class="text-[10px] text-slate-400 font-medium">Total Seats</span>
+              <div class="flex items-center justify-between mt-1">
+                <button class="seat-minus w-6 h-6 rounded bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center text-xs active-bounce">-</button>
+                <input type="number" min="0" max="60" value="${zone.seats}" class="seat-input w-9 text-center bg-transparent font-bold text-xs text-white focus:outline-none focus:ring-1 focus:ring-sky-500 rounded">
+                <button class="seat-plus w-6 h-6 rounded bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center text-xs active-bounce">+</button>
+              </div>
+            </div>
+
+            <!-- SPMLs -->
+            <div class="bg-slate-900/70 p-2 rounded-xl border border-amber-900/40 flex flex-col justify-between">
+              <span class="text-[10px] text-amber-300 font-medium">SPMLs</span>
+              <div class="flex items-center justify-between mt-1">
+                <button class="spml-minus w-6 h-6 rounded bg-amber-950/60 text-amber-300 hover:text-white flex items-center justify-center text-xs active-bounce">-</button>
+                <input type="number" min="0" max="${zone.seats}" value="${zone.spml}" class="spml-input w-9 text-center bg-transparent font-bold text-xs text-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-500 rounded">
+                <button class="spml-plus w-6 h-6 rounded bg-amber-950/60 text-amber-300 hover:text-white flex items-center justify-center text-xs active-bounce">+</button>
+              </div>
+            </div>
+
+            <!-- Empty Seats -->
+            <div class="bg-slate-900/70 p-2 rounded-xl border border-slate-800 flex flex-col justify-between">
+              <span class="text-[10px] text-slate-400 font-medium">Empty</span>
+              <div class="flex items-center justify-between mt-1">
+                <button class="empty-minus w-6 h-6 rounded bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center text-xs active-bounce">-</button>
+                <input type="number" min="0" max="${zone.seats}" value="${zone.empty}" class="empty-input w-9 text-center bg-transparent font-bold text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-500 rounded">
+                <button class="empty-plus w-6 h-6 rounded bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center text-xs active-bounce">+</button>
+              </div>
+            </div>
+
+          </div>
+        `;
+
+        const seatInput = card.querySelector('.seat-input');
+        const spmlInput = card.querySelector('.spml-input');
+        const emptyInput = card.querySelector('.empty-input');
+
+        card.querySelector('.seat-minus').onclick = () => {
+          if (zone.seats > 0) { zone.seats--; refreshAll(); }
+        };
+        card.querySelector('.seat-plus').onclick = () => {
+          zone.seats++; refreshAll();
+        };
+        seatInput.onchange = (e) => {
+          zone.seats = Math.max(0, parseInt(e.target.value) || 0);
+          refreshAll();
+        };
+
+        card.querySelector('.spml-minus').onclick = () => {
+          if (zone.spml > 0) { zone.spml--; refreshAll(); }
+        };
+        card.querySelector('.spml-plus').onclick = () => {
+          zone.spml++; refreshAll();
+        };
+        spmlInput.onchange = (e) => {
+          zone.spml = Math.max(0, parseInt(e.target.value) || 0);
+          refreshAll();
+        };
+
+        card.querySelector('.empty-minus').onclick = () => {
+          if (zone.empty > 0) { zone.empty--; refreshAll(); }
+        };
+        card.querySelector('.empty-plus').onclick = () => {
+          zone.empty++; refreshAll();
+        };
+        emptyInput.onchange = (e) => {
+          zone.empty = Math.max(0, parseInt(e.target.value) || 0);
+          refreshAll();
+        };
+
+        container.appendChild(card);
+      });
+    }
+
+    function renderCateringInputs() {
+      // Render Starters
+      const startersList = document.getElementById('startersList');
+      startersList.innerHTML = '';
+      appState.starters.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 gap-2';
+        row.innerHTML = `
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <input type="text" value="${item.name}" class="starter-name-input bg-transparent text-sm font-semibold text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded px-1 py-0.5 w-full">
+          </div>
+          <div class="flex items-center space-x-1.5 shrink-0">
+            <button class="step-minus w-7 h-7 rounded-lg bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center active-bounce text-sm">-</button>
+            <input type="number" min="0" value="${item.loaded}" class="step-input w-12 text-center bg-slate-950 font-bold text-sm text-emerald-400 py-1 rounded-lg border border-slate-700 focus:outline-none focus:border-emerald-500">
+            <button class="step-plus w-7 h-7 rounded-lg bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center active-bounce text-sm">+</button>
+            ${appState.starters.length > 1 ? `
+              <button class="del-item text-slate-500 hover:text-red-400 p-1.5 text-xs ml-1"><i class="fa-solid fa-trash-can"></i></button>
+            ` : ''}
+          </div>
+        `;
+
+        const nameInput = row.querySelector('.starter-name-input');
+        const countInput = row.querySelector('.step-input');
+
+        nameInput.onchange = (e) => {
+          item.name = e.target.value.trim() || 'Starter';
+          saveState();
+        };
+
+        row.querySelector('.step-minus').onclick = () => {
+          if (item.loaded > 0) { item.loaded--; triggerHaptic(); refreshAll(); }
+        };
+        row.querySelector('.step-plus').onclick = () => {
+          item.loaded++; triggerHaptic(); refreshAll();
+        };
+        countInput.onchange = (e) => {
+          item.loaded = Math.max(0, parseInt(e.target.value) || 0);
+          refreshAll();
+        };
+
+        const delBtn = row.querySelector('.del-item');
+        if (delBtn) {
+          delBtn.onclick = () => {
+            appState.starters = appState.starters.filter(s => s.id !== item.id);
+            refreshAll();
+          };
+        }
+
+        startersList.appendChild(row);
+      });
+
+      // Render Mains
+      const mainsList = document.getElementById('mainsList');
+      mainsList.innerHTML = '';
+      appState.mains.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 gap-2';
+        row.innerHTML = `
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <input type="text" value="${item.name}" class="main-name-input bg-transparent text-sm font-semibold text-white focus:outline-none focus:ring-1 focus:ring-sky-500 rounded px-1 py-0.5 w-full">
+          </div>
+          <div class="flex items-center space-x-1.5 shrink-0">
+            <button class="step-minus w-7 h-7 rounded-lg bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center active-bounce text-sm">-</button>
+            <input type="number" min="0" value="${item.loaded}" class="step-input w-12 text-center bg-slate-950 font-bold text-sm text-sky-400 py-1 rounded-lg border border-slate-700 focus:outline-none focus:border-sky-500">
+            <button class="step-plus w-7 h-7 rounded-lg bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center active-bounce text-sm">+</button>
+            ${appState.mains.length > 1 ? `
+              <button class="del-item text-slate-500 hover:text-red-400 p-1.5 text-xs ml-1"><i class="fa-solid fa-trash-can"></i></button>
+            ` : ''}
+          </div>
+        `;
+
+        const nameInput = row.querySelector('.main-name-input');
+        const countInput = row.querySelector('.step-input');
+
+        nameInput.onchange = (e) => {
+          item.name = e.target.value.trim() || 'Main';
+          saveState();
+        };
+
+        row.querySelector('.step-minus').onclick = () => {
+          if (item.loaded > 0) { item.loaded--; triggerHaptic(); refreshAll(); }
+        };
+        row.querySelector('.step-plus').onclick = () => {
+          item.loaded++; triggerHaptic(); refreshAll();
+        };
+        countInput.onchange = (e) => {
+          item.loaded = Math.max(0, parseInt(e.target.value) || 0);
+          refreshAll();
+        };
+
+        const delBtn = row.querySelector('.del-item');
+        if (delBtn) {
+          delBtn.onclick = () => {
+            appState.mains = appState.mains.filter(m => m.id !== item.id);
+            refreshAll();
+          };
+        }
+
+        mainsList.appendChild(row);
+      });
+    }
+
+    function autoMatchDemand() {
+      const computed = computeAllAllocations();
+      const demand = computed.totalStandardReq;
+      if (demand <= 0) {
+        showToast('Set passenger demand first', 'fa-triangle-exclamation', true);
+        return;
+      }
+
+      // 1. Auto-set Starters (e.g. 50/50 split across Appetiser 2 and 3)
+      if (appState.starters.length === 2) {
+        const half = Math.floor(demand / 2);
+        appState.starters[0].loaded = demand - half;
+        appState.starters[1].loaded = half;
+      } else {
+        const perStarter = Math.floor(demand / appState.starters.length);
+        let rem = demand;
+        appState.starters.forEach((s, idx) => {
+          if (idx === appState.starters.length - 1) {
+            s.loaded = rem;
+          } else {
+            s.loaded = perStarter;
+            rem -= perStarter;
+          }
+        });
+      }
+
+      // 2. Auto-set Mains (typical 40% / 35% / 25% or balanced)
+      if (appState.mains.length === 3) {
+        const m1 = Math.round(demand * 0.35);
+        const m2 = Math.round(demand * 0.40);
+        const m3 = Math.max(0, demand - (m1 + m2));
+        appState.mains[0].loaded = m1;
+        appState.mains[1].loaded = m2;
+        appState.mains[2].loaded = m3;
+      } else {
+        const perMain = Math.floor(demand / appState.mains.length);
+        let remM = demand;
+        appState.mains.forEach((m, idx) => {
+          if (idx === appState.mains.length - 1) {
+            m.loaded = remM;
+          } else {
+            m.loaded = perMain;
+            remM -= perMain;
+          }
+        });
+      }
+
+      triggerHaptic();
+      refreshAll();
+      showToast(`Set catering loads to match ${demand} pax`, 'fa-wand-magic-sparkles');
+    }
+
+    function renderAllocationPosFilterStrip() {
+      const strip = document.getElementById('allocationPosFilterStrip');
+      if (!strip) return;
+      strip.innerHTML = '';
+
+      const posList = ['ALL', ...appState.zones.map(z => z.pos)];
+
+      posList.forEach(pos => {
+        const btn = document.createElement('button');
+        const isActive = selectedAllocationPos === pos;
+        btn.className = `px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap active-bounce transition-colors ${
+          isActive 
+            ? 'bg-sky-500 text-slate-950 font-bold shadow' 
+            : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white'
+        }`;
+        btn.textContent = pos === 'ALL' ? 'All Zones' : pos;
+        btn.onclick = () => {
+          selectedAllocationPos = pos;
+          triggerHaptic();
+          renderAllocations(computeAllAllocations());
+          renderAllocationPosFilterStrip();
+        };
+        strip.appendChild(btn);
+      });
+    }
+
+    function renderAllocations(computed) {
+      const container = document.getElementById('allocationsContainer');
+      container.innerHTML = '';
+
+      const filteredZones = appState.zones.filter(z => {
+        if (selectedAllocationPos === 'ALL') return true;
+        return z.pos === selectedAllocationPos;
+      });
+
+      filteredZones.forEach(zone => {
+        const zoneData = computed.zones[zone.id];
+        const isReverseFlow = zone.direction.toLowerCase().includes('aft to fwd');
+        const sharePct = computed.totalStandardReq > 0 
+          ? ((zoneData.netReq / computed.totalStandardReq) * 100).toFixed(1) 
+          : '0.0';
+
+        // Calculate surplus buffers for this specific zone
+        const starterDiff = zoneData.totalStartersAllocated - zoneData.netReq;
+        const mainDiff = zoneData.totalMainsAllocated - zoneData.netReq;
+
+        let starterBadge = '';
+        if (starterDiff > 0) {
+          starterBadge = `<span class="text-[10px] bg-emerald-950 text-emerald-300 font-bold px-1.5 py-0.5 rounded border border-emerald-700/60">+${starterDiff} spare</span>`;
+        } else if (starterDiff < 0) {
+          starterBadge = `<span class="text-[10px] bg-red-950 text-red-300 font-bold px-1.5 py-0.5 rounded border border-red-700/60">${starterDiff} short</span>`;
+        }
+
+        let mainBadge = '';
+        if (mainDiff > 0) {
+          mainBadge = `<span class="text-[10px] bg-sky-950 text-sky-300 font-bold px-1.5 py-0.5 rounded border border-sky-700/60">+${mainDiff} buffer</span>`;
+        } else if (mainDiff < 0) {
+          mainBadge = `<span class="text-[10px] bg-red-950 text-red-300 font-bold px-1.5 py-0.5 rounded border border-red-700/60">${mainDiff} short</span>`;
+        }
+
+        let startersHtml = '';
+        appState.starters.forEach(s => {
+          const qty = zoneData.starters[s.id] || 0;
+          startersHtml += `
+            <div class="flex items-center justify-between py-1 px-1.5 text-xs border-b border-slate-800/60 last:border-b-0">
+              <span class="text-slate-300 font-medium">${s.name}</span>
+              <span class="font-extrabold text-sm text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/50 min-w-[28px] text-center">${qty}</span>
+            </div>
+          `;
+        });
+
+        let mainsHtml = '';
+        appState.mains.forEach(m => {
+          const qty = zoneData.mains[m.id] || 0;
+          mainsHtml += `
+            <div class="flex items-center justify-between py-1 px-1.5 text-xs border-b border-slate-800/60 last:border-b-0">
+              <span class="text-slate-300 font-medium">${m.name}</span>
+              <span class="font-extrabold text-sm text-sky-400 bg-sky-950/40 px-2 py-0.5 rounded border border-sky-800/50 min-w-[28px] text-center">${qty}</span>
+            </div>
+          `;
+        });
+
+        const card = document.createElement('div');
+        card.className = 'bg-ba-card/90 border border-ba-cardBorder rounded-2xl p-3.5 shadow-md space-y-3';
+        card.innerHTML = `
+          <!-- Header -->
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-lg bg-ba-lightBlue text-white font-black text-xs shadow-sm">
+                ${zone.pos}
+              </span>
+              <div>
+                <div class="text-sm font-bold text-white leading-none">${zone.name}</div>
+                <div class="text-[11px] text-slate-300 mt-0.5">${zone.rows}</div>
+              </div>
+            </div>
+
+            <!-- Demand stats badge & % of cabin -->
+            <div class="flex items-center gap-1.5 text-right">
+              <div class="px-2 py-1 bg-slate-900 rounded-lg border border-slate-800 text-[11px]">
+                <span class="text-slate-400">Pax:</span> <strong class="text-white">${zone.seats - zone.empty}</strong>
+                ${zone.spml > 0 ? `<span class="text-amber-300 ml-1">(${zone.spml} SPML)</span>` : ''}
+              </div>
+              <div class="px-2 py-1 bg-sky-950/60 rounded-lg border border-sky-800/60 text-[11px]">
+                <span class="text-sky-300 font-bold">${zoneData.netReq} Std (${sharePct}%)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Service direction & centre seats notice -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between bg-slate-900/60 px-2.5 py-1 rounded-lg text-[10px] text-slate-300">
+              <span class="flex items-center gap-1">
+                <i class="fa-solid fa-compass text-slate-400"></i>
+                <span>Service Order:</span>
+                <strong class="text-slate-200">${zone.direction}</strong>
+              </span>
+              ${isReverseFlow ? '<span class="text-[9px] text-amber-300 font-bold bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20">AFT → FWD</span>' : ''}
+            </div>
+
+            ${zone.centreSeats ? `
+              <div class="flex items-center justify-between bg-purple-950/30 px-2.5 py-1 rounded-lg text-[10px] text-purple-200 border border-purple-900/40">
+                <span class="flex items-center gap-1">
+                  <i class="fa-solid fa-arrows-to-dot text-purple-400"></i>
+                  <span>Centre Seat(s):</span>
+                  <strong class="text-white">${zone.centreSeats}</strong>
+                </span>
+                <span class="text-[9px] text-purple-300">Serve Together</span>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Starters Breakdown -->
+          <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800/80">
+            <div class="flex items-center justify-between text-[11px] text-emerald-400 font-semibold mb-1 pb-1 border-b border-slate-800">
+              <span class="flex items-center gap-1">
+                <i class="fa-solid fa-bowl-rice text-[10px]"></i>
+                <span>STARTER TRAYS (${zoneData.totalStartersAllocated})</span>
+              </span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-slate-400 text-[10px]">Req: ${zoneData.netReq}</span>
+                ${starterBadge}
+              </div>
+            </div>
+            <div class="space-y-0.5">
+              ${startersHtml}
+            </div>
+          </div>
+
+          <!-- Mains Breakdown -->
+          <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800/80">
+            <div class="flex items-center justify-between text-[11px] text-sky-400 font-semibold mb-1.5 pb-1 border-b border-slate-800">
+              <span class="flex items-center gap-1">
+                <i class="fa-solid fa-drumstick-bite text-[10px]"></i>
+                <span>MAIN COURSES (${zoneData.totalMainsAllocated})</span>
+              </span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-slate-400 text-[10px]">Req: ${zoneData.netReq}</span>
+                ${mainBadge}
+              </div>
+            </div>
+            <div class="space-y-0.5">
+              ${mainsHtml}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function renderMatrixTable(computed) {
+      const header = document.getElementById('matrixTableHeader');
+      const body = document.getElementById('matrixTableBody');
+      const foot = document.getElementById('matrixTableFoot');
+
+      header.innerHTML = `
+        <th class="py-2 px-2">Item</th>
+        ${appState.zones.map(z => `<th class="py-2 px-1.5 text-center">${z.pos}<br><span class="text-[9px] lowercase font-normal text-slate-400">(${computed.zones[z.id].netReq})</span></th>`).join('')}
+        <th class="py-2 px-2 text-right">Total</th>
+      `;
+
+      body.innerHTML = '';
+
+      // Starter rows
+      appState.starters.forEach(s => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-slate-900/40 text-slate-200';
+        const zoneCells = appState.zones.map(z => {
+          const qty = computed.zones[z.id].starters[s.id] || 0;
+          return `<td class="py-2 px-1.5 text-center font-bold text-emerald-400">${qty}</td>`;
+        }).join('');
+
+        row.innerHTML = `
+          <td class="py-2 px-2 font-medium text-emerald-300 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span class="truncate max-w-[110px]">${s.name}</span>
+          </td>
+          ${zoneCells}
+          <td class="py-2 px-2 text-right font-bold text-white">${s.loaded}</td>
+        `;
+        body.appendChild(row);
+      });
+
+      // Mains rows
+      appState.mains.forEach(m => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-slate-900/40 text-slate-200';
+        const zoneCells = appState.zones.map(z => {
+          const qty = computed.zones[z.id].mains[m.id] || 0;
+          return `<td class="py-2 px-1.5 text-center font-bold text-sky-400">${qty}</td>`;
+        }).join('');
+
+        row.innerHTML = `
+          <td class="py-2 px-2 font-medium text-sky-300 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+            <span class="truncate max-w-[110px]">${m.name}</span>
+          </td>
+          ${zoneCells}
+          <td class="py-2 px-2 text-right font-bold text-white">${m.loaded}</td>
+        `;
+        body.appendChild(row);
+      });
+
+      // Footer
+      const footerCells = appState.zones.map(z => {
+        const zd = computed.zones[z.id];
+        return `<td class="py-2.5 px-1.5 text-center text-sky-300 text-[11px]">${zd.totalMainsAllocated}</td>`;
+      }).join('');
+
+      foot.innerHTML = `
+        <tr>
+          <td class="py-2.5 px-2 text-[11px]">Total Mains Allocated</td>
+          ${footerCells}
+          <td class="py-2.5 px-2 text-right text-sky-300 text-[11px]">${computed.mainsTotal}</td>
+        </tr>
+      `;
+    }
+
+    // ==========================================
+    // BRIEFING TEXT EXPORT GENERATORS
+    // ==========================================
+    function generateHandoverText(computed) {
+      const preset = PRESETS[appState.aircraft];
+      let txt = `✈️ BA CLUB WORLD MEAL ALLOCATION\n`;
+      txt += `Aircraft: ${preset ? preset.name : appState.aircraft}\n`;
+      txt += `Total Seats: ${computed.totalSeats} | SPML: ${computed.totalSPML} | Empty: ${computed.totalEmpty}\n`;
+      txt += `Net Standard Demand: ${computed.totalStandardReq} pax\n`;
+      txt += `Loaded: ${computed.startersTotal} Starter Trays | ${computed.mainsTotal} Mains\n`;
+      txt += `------------------------------------\n`;
+
+      appState.zones.forEach(z => {
+        const zd = computed.zones[z.id];
+        txt += `\n📍 ${z.pos} - ${z.name} (${z.rows})\n`;
+        txt += `Flow: ${z.direction}\n`;
+        if (z.centreSeats) {
+          txt += `Centre Seats: ${z.centreSeats}\n`;
+        }
+        txt += `Pax: ${z.seats - z.empty} (${z.spml} SPML) => REQ: ${zd.netReq} std\n`;
+
+        txt += `• STARTER TRAYS (${zd.totalStartersAllocated}):\n`;
+        appState.starters.forEach(s => {
+          txt += `   - ${s.name}: ${zd.starters[s.id] || 0}\n`;
+        });
+
+        txt += `• MAINS (${zd.totalMainsAllocated}):\n`;
+        appState.mains.forEach(m => {
+          txt += `   - ${m.name}: ${zd.mains[m.id] || 0}\n`;
+        });
+      });
+
+      txt += `\n------------------------------------\n`;
+      txt += `Generated via Club World Meal Splitter`;
+      return txt;
+    }
+
+    function generateMatrixText(computed) {
+      let txt = `CW ALLOCATION MATRIX - ${appState.aircraft}\n\n`;
+      txt += `Item\t` + appState.zones.map(z => `${z.pos} (Req:${computed.zones[z.id].netReq})`).join('\t') + `\tTotal\n`;
+
+      appState.starters.forEach(s => {
+        txt += `${s.name}\t` + appState.zones.map(z => computed.zones[z.id].starters[s.id] || 0).join('\t') + `\t${s.loaded}\n`;
+      });
+
+      appState.mains.forEach(m => {
+        txt += `${m.name}\t` + appState.zones.map(z => computed.zones[z.id].mains[m.id] || 0).join('\t') + `\t${m.loaded}\n`;
+      });
+
+      return txt;
+    }
+
+    // ==========================================
+    // PRESET MODAL LIST RENDERER
+    // ==========================================
+    function renderPresetsList() {
+      const container = document.getElementById('presetsList');
+      container.innerHTML = '';
+
+      const keys = Object.keys(PRESETS).filter(k => {
+        if (currentFleetFilter === 'ALL') return true;
+        return PRESETS[k].fleet === currentFleetFilter;
+      });
+
+      keys.forEach(key => {
+        const item = PRESETS[key];
+        const isSelected = appState.aircraft === key;
+        const totalSeats = item.zones.reduce((s, z) => s + z.seats, 0);
+
+        const btn = document.createElement('button');
+        btn.setAttribute('data-preset', key);
+        btn.className = `preset-option w-full text-left p-3 rounded-xl border transition-all active-bounce flex items-center justify-between ${
+          isSelected 
+            ? 'border-sky-400 bg-ba-lightBlue/20 shadow-md ring-1 ring-sky-400/50' 
+            : 'border-slate-800 bg-slate-950/70 hover:bg-slate-800/60'
+        }`;
+
+        const isSuite = item.seatType === 'suite';
+        const productBadge = isSuite
+          ? `<span class="text-[9px] bg-sky-950 text-sky-300 border border-sky-700/60 font-semibold px-1.5 py-0.5 rounded">Club Suite</span>`
+          : `<span class="text-[9px] bg-purple-950 text-purple-300 border border-purple-700/60 font-semibold px-1.5 py-0.5 rounded">Yin-Yang</span>`;
+
+        btn.innerHTML = `
+          <div class="flex-1 min-w-0 pr-2">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-white text-xs">${item.name}</span>
+              ${productBadge}
+              <span class="text-[10px] bg-slate-800 text-slate-300 font-bold px-1.5 py-0.5 rounded">${totalSeats} seats</span>
+            </div>
+            <div class="text-[11px] text-slate-400 mt-1 truncate">
+              ${item.zones.map(z => `${z.pos} (${z.seats})`).join(', ')}
+            </div>
+          </div>
+          <div class="shrink-0">
+            ${isSelected 
+              ? '<i class="fa-solid fa-circle-check text-sky-400 text-base"></i>' 
+              : '<i class="fa-solid fa-chevron-right text-slate-600 text-xs"></i>'}
+          </div>
+        `;
+
+        btn.onclick = () => {
+          appState.aircraft = key;
+          appState.zones = JSON.parse(JSON.stringify(PRESETS[key].zones));
+          document.getElementById('aircraftModal').classList.add('hidden');
+          document.getElementById('aircraftModal').classList.remove('flex');
+          refreshAll();
+          showToast(`Switched to ${item.name}`);
+        };
+
+        container.appendChild(btn);
+      });
+    }
+
+    // ==========================================
+    // MASTER REFRESH CONTROLLER
+    // ==========================================
+    function refreshAll() {
+      saveState();
+      const computed = computeAllAllocations();
+      updateTopSummary(computed);
+      renderZonesList();
+      renderCateringInputs();
+      renderAllocationPosFilterStrip();
+      renderAllocations(computed);
+      renderMatrixTable(computed);
+    }
+
+    // ==========================================
+    // INITIALIZATION & EVENT LISTENERS
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Navigation Tabs
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-tab');
+
+          tabButtons.forEach(b => {
+            b.classList.remove('text-sky-400');
+            b.classList.add('text-slate-400');
+          });
+          btn.classList.add('text-sky-400');
+          btn.classList.remove('text-slate-400');
+
+          tabContents.forEach(tc => {
+            if (tc.id === target) {
+              tc.classList.remove('hidden');
+            } else {
+              tc.classList.add('hidden');
+            }
+          });
+        });
+      });
+
+      // Fleet Filter buttons
+      document.querySelectorAll('.fleet-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.fleet-filter-btn').forEach(b => {
+            b.className = 'fleet-filter-btn py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-colors';
+          });
+          btn.className = 'fleet-filter-btn active py-1.5 rounded-lg font-semibold text-white bg-ba-lightBlue transition-colors';
+          currentFleetFilter = btn.getAttribute('data-fleet');
+          renderPresetsList();
+        });
+      });
+
+      // Add Starter Button
+      document.getElementById('addStarterBtn').onclick = () => {
+        const nextNum = appState.starters.length + 1;
+        appState.starters.push({
+          id: 's_' + Date.now(),
+          name: `Starter ${nextNum}`,
+          loaded: 0
+        });
+        refreshAll();
+        showToast('Added Starter option');
+      };
+
+      // Add Main Button
+      document.getElementById('addMainBtn').onclick = () => {
+        const nextNum = appState.mains.length + 1;
+        appState.mains.push({
+          id: 'm_' + Date.now(),
+          name: `Main ${nextNum}`,
+          loaded: 0
+        });
+        refreshAll();
+        showToast('Added Main option');
+      };
+
+      // Clear SPML Button
+      document.getElementById('quickZeroSPML').onclick = () => {
+        appState.zones.forEach(z => z.spml = 0);
+        triggerHaptic();
+        refreshAll();
+        showToast('Cleared all SPML counts');
+      };
+
+      // Clear Empty Seats Button
+      document.getElementById('quickZeroEmpty').onclick = () => {
+        appState.zones.forEach(z => z.empty = 0);
+        triggerHaptic();
+        refreshAll();
+        showToast('Cleared empty seats');
+      };
+
+      // Auto-Match Catering Demand
+      document.getElementById('autoMatchDemandBtn').onclick = autoMatchDemand;
+
+      // Copy Handover Briefing
+      document.getElementById('copyHandoverBtn').onclick = () => {
+        const computed = computeAllAllocations();
+        const briefingText = generateHandoverText(computed);
+        copyToClipboard(briefingText, 'Handover briefing copied for WhatsApp/Notes');
+      };
+
+      // Copy Matrix Table
+      document.getElementById('copyTableBtn').onclick = () => {
+        const computed = computeAllAllocations();
+        const matrixText = generateMatrixText(computed);
+        copyToClipboard(matrixText, 'Allocation matrix copied');
+      };
+
+      // Aircraft Preset Modal Open/Close
+      const modal = document.getElementById('aircraftModal');
+      document.getElementById('aircraftModalBtn').onclick = () => {
+        renderPresetsList();
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      };
+
+      const closeModal = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      };
+
+      document.getElementById('closePresetModal').onclick = closeModal;
+      document.getElementById('closePresetModalBottom').onclick = closeModal;
+      modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+      };
+
+      // Reset All to Default
+      document.getElementById('resetBtn').onclick = () => {
+        appState = JSON.parse(JSON.stringify(defaultState));
+        refreshAll();
+        showToast('Reset to default values', 'fa-rotate-right');
+      };
+
+      // Initial Refresh
+      refreshAll();
+      setupPwaAssets();
+
+      // Share Modal handlers
+      const shareModal = document.getElementById('shareModal');
+      const qrShareBtn = document.getElementById('qrShareBtn');
+      const closeShareModal = document.getElementById('closeShareModal');
+      const closeShareModalBtn = document.getElementById('closeShareModalBtn');
+      const shareQrImg = document.getElementById('shareQrImg');
+      const copyShareLinkBtn = document.getElementById('copyShareLinkBtn');
+      const copyLinkBtnText = document.getElementById('copyLinkBtnText');
+
+      if (qrShareBtn) {
+        qrShareBtn.onclick = () => {
+          const url = window.location.href.split('#')[0];
+          shareQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}&margin=1`;
+          shareModal.classList.remove('hidden');
+          shareModal.classList.add('flex');
+        };
+      }
+
+      const closeShare = () => {
+        shareModal.classList.add('hidden');
+        shareModal.classList.remove('flex');
+      };
+
+      if (closeShareModal) closeShareModal.onclick = closeShare;
+      if (closeShareModalBtn) closeShareModalBtn.onclick = closeShare;
+      if (shareModal) {
+        shareModal.onclick = (e) => {
+          if (e.target === shareModal) closeShare();
+        };
+      }
+
+      if (copyShareLinkBtn) {
+        copyShareLinkBtn.onclick = () => {
+          const url = window.location.href.split('#')[0];
+          copyToClipboard(url, 'Link copied!');
+          if (copyLinkBtnText) copyLinkBtnText.textContent = 'Copied! ✓';
+          setTimeout(() => { if (copyLinkBtnText) copyLinkBtnText.textContent = 'Copy Link'; }, 2000);
+        };
+      }
+    });
+  </script>
+</body>
+</html>
