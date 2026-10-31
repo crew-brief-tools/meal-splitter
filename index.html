@@ -628,58 +628,120 @@
     }
 
     // ==========================================
-    // ALLOCATION ALGORITHM (HARE-NIEMEYER)
+    // ALLOCATION ALGORITHM (2D BIPROPORTIONAL APPORTIONMENT)
     // ==========================================
     function allocateItems(items, zonesData, totalDemand) {
       const results = {};
       zonesData.forEach(z => { results[z.id] = {}; });
 
-      // Fallback total capacity if netDemand is 0 but meals were loaded
+      const totalLoaded = items.reduce((sum, item) => sum + Math.max(0, parseInt(item.loaded) || 0), 0);
+      if (totalLoaded <= 0 || zonesData.length === 0) {
+        items.forEach(item => {
+          zonesData.forEach(z => { results[z.id][item.id] = 0; });
+        });
+        return results;
+      }
+
+      // Step 1: Establish TARGET TOTAL meals for each zone (Row quotas)
+      // When totalLoaded == totalDemand, targetTotals will exactly match each zone's netReq.
+      const targetTotals = {};
+      let totalAssignedToZones = 0;
+      const zoneRemainders = [];
       const totalCapacity = zonesData.reduce((acc, z) => acc + (z.seats || 1), 0);
 
-      items.forEach(item => {
-        const totalLoaded = Math.max(0, parseInt(item.loaded) || 0);
+      zonesData.forEach(z => {
+        const weight = totalDemand > 0 ? (z.netReq / totalDemand) : (z.seats / (totalCapacity || 1));
+        const exact = weight * totalLoaded;
+        const base = Math.floor(exact);
+        targetTotals[z.id] = base;
+        totalAssignedToZones += base;
+        zoneRemainders.push({
+          zoneId: z.id,
+          rem: exact - base,
+          weight: weight
+        });
+      });
 
-        if (totalLoaded <= 0) {
+      let leftoverToZones = totalLoaded - totalAssignedToZones;
+      zoneRemainders.sort((a, b) => b.rem - a.rem);
+      for (let i = 0; i < leftoverToZones; i++) {
+        targetTotals[zoneRemainders[i % zoneRemainders.length].zoneId] += 1;
+      }
+
+      // Step 2: Initial column-wise apportionment per meal choice (Column quotas)
+      const currentZoneTotals = {};
+      zonesData.forEach(z => { currentZoneTotals[z.id] = 0; });
+
+      items.forEach(item => {
+        const c_j = Math.max(0, parseInt(item.loaded) || 0);
+        if (c_j <= 0) {
           zonesData.forEach(z => { results[z.id][item.id] = 0; });
           return;
         }
 
-        let allocatedCount = 0;
-        const remainders = [];
-
+        let allocatedCol = 0;
+        const colRem = [];
         zonesData.forEach(z => {
-          // If totalDemand > 0 use net standard passenger demand. If 0, divide by total seat capacity.
-          const weight = totalDemand > 0 ? (z.netReq / totalDemand) : (z.seats / (totalCapacity || 1));
-          const exactShare = weight * totalLoaded;
-          const baseFloor = Math.floor(exactShare);
-          const remainder = exactShare - baseFloor;
-
-          results[z.id][item.id] = baseFloor;
-          allocatedCount += baseFloor;
-
-          remainders.push({
+          const ideal = (targetTotals[z.id] * c_j) / totalLoaded;
+          const base = Math.floor(ideal);
+          results[z.id][item.id] = base;
+          allocatedCol += base;
+          currentZoneTotals[z.id] += base;
+          colRem.push({
             zoneId: z.id,
-            remainder: remainder,
-            netReq: totalDemand > 0 ? z.netReq : z.seats
+            rem: ideal - base,
+            ideal: ideal
           });
         });
 
-        let remainingPieces = totalLoaded - allocatedCount;
-
-        remainders.sort((a, b) => {
-          if (Math.abs(b.remainder - a.remainder) > 0.00001) {
-            return b.remainder - a.remainder;
-          }
-          return b.netReq - a.netReq;
-        });
-
-        for (let i = 0; i < remainingPieces; i++) {
-          const winnerIndex = i % remainders.length;
-          const winnerZoneId = remainders[winnerIndex].zoneId;
-          results[winnerZoneId][item.id] += 1;
+        let remCol = c_j - allocatedCol;
+        colRem.sort((a, b) => b.rem - a.rem);
+        for (let i = 0; i < remCol; i++) {
+          const winnerId = colRem[i % colRem.length].zoneId;
+          results[winnerId][item.id] += 1;
+          currentZoneTotals[winnerId] += 1;
         }
       });
+
+      // Step 3: Biproportional balancing (Transfer between surplus and deficit zones)
+      // Fixes row sums to match exact target totals while strictly preserving loaded column sums
+      let maxIter = 250;
+      while (maxIter-- > 0) {
+        const surplusZone = zonesData.find(z => currentZoneTotals[z.id] > targetTotals[z.id]);
+        const deficitZone = zonesData.find(z => currentZoneTotals[z.id] < targetTotals[z.id]);
+
+        if (!surplusZone || !deficitZone) break;
+
+        let bestItem = null;
+        let minCost = Infinity;
+
+        items.forEach(item => {
+          const currSurplus = results[surplusZone.id][item.id] || 0;
+          if (currSurplus <= 0) return;
+
+          const c_j = Math.max(0, parseInt(item.loaded) || 0);
+          const idealSurplus = (targetTotals[surplusZone.id] * c_j) / totalLoaded;
+          const idealDeficit = (targetTotals[deficitZone.id] * c_j) / totalLoaded;
+          const currDeficit = results[deficitZone.id][item.id] || 0;
+
+          // Difference in squared error from ideal fractional values
+          const oldError = Math.pow(currSurplus - idealSurplus, 2) + Math.pow(currDeficit - idealDeficit, 2);
+          const newError = Math.pow((currSurplus - 1) - idealSurplus, 2) + Math.pow((currDeficit + 1) - idealDeficit, 2);
+          const cost = newError - oldError;
+
+          if (cost < minCost) {
+            minCost = cost;
+            bestItem = item;
+          }
+        });
+
+        if (!bestItem) break;
+
+        results[surplusZone.id][bestItem.id] -= 1;
+        results[deficitZone.id][bestItem.id] += 1;
+        currentZoneTotals[surplusZone.id] -= 1;
+        currentZoneTotals[deficitZone.id] += 1;
+      }
 
       return results;
     }
@@ -1206,6 +1268,8 @@
           starterBadge = `<span class="text-[10px] bg-emerald-950 text-emerald-300 font-bold px-1.5 py-0.5 rounded border border-emerald-700/60">+${starterDiff} spare</span>`;
         } else if (starterDiff < 0) {
           starterBadge = `<span class="text-[10px] bg-red-950 text-red-300 font-bold px-1.5 py-0.5 rounded border border-red-700/60">${starterDiff} short</span>`;
+        } else if (zoneData.netReq > 0) {
+          starterBadge = `<span class="text-[10px] bg-emerald-950/40 text-emerald-400 font-medium px-1.5 py-0.5 rounded border border-emerald-800/40">Exact ✓</span>`;
         }
 
         let mainBadge = '';
@@ -1213,6 +1277,8 @@
           mainBadge = `<span class="text-[10px] bg-sky-950 text-sky-300 font-bold px-1.5 py-0.5 rounded border border-sky-700/60">+${mainDiff} buffer</span>`;
         } else if (mainDiff < 0) {
           mainBadge = `<span class="text-[10px] bg-red-950 text-red-300 font-bold px-1.5 py-0.5 rounded border border-red-700/60">${mainDiff} short</span>`;
+        } else if (zoneData.netReq > 0) {
+          mainBadge = `<span class="text-[10px] bg-sky-950/40 text-sky-300 font-medium px-1.5 py-0.5 rounded border border-sky-800/40">Exact ✓</span>`;
         }
 
         let startersHtml = '';
